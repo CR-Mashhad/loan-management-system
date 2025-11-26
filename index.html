@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سیستم مدیریت وام‌ها - CR(Mashhad)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+	
+	
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -52,8 +55,8 @@
         }
         
         .table-title .btn {
-            color: #fff;
-            font-size: 12px;
+            color: #130000;
+            font-size: 13px;
             border: none;
             border-radius: 4px;
             outline: none !important;
@@ -1196,6 +1199,47 @@ table.table td:nth-child(12) {
     min-width: 140px;
 }
 
+
+
+/* این کد را به انتهای بخش استایل اضافه کنید */
+
+/* تضمین نمایش آیکون‌ها */
+.fas, .fa, .far, .fab {
+    font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Brands', 'Vazirmatn', Tahoma, sans-serif !important;
+    font-weight: 900;
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+    font-size: inherit;
+}
+
+/* تضمین نمایش آیکون‌ها در دکمه‌ها و جدول */
+.btn i, 
+.table td i, 
+.table td a i {
+    font-size: 14px !important;
+    min-width: 16px;
+    text-align: center;
+    display: inline-block;
+}
+
+/* تضمین نمایش آیکون‌ها در حالت‌های مختلف */
+.fa-eye:before { content: "\f06e"; }
+.fa-edit:before { content: "\f044"; }
+.fa-trash:before { content: "\f1f8"; }
+.fa-plus:before { content: "\2b"; }
+.fa-file-excel:before { content: "\f1c3"; }
+.fa-search:before { content: "\f002"; }
+.fa-university:before { content: "\f19c"; }
+.fa-plus-circle:before { content: "\f055"; }
+.fa-chevron-down:before { content: "\f078"; }
+.fa-chevron-up:before { content: "\f077"; }
+.fa-times:before { content: "\f00d"; }
+.fa-redo:before { content: "\f01e"; }
+
+
 		
     </style>
 </head>
@@ -1217,9 +1261,9 @@ table.table td:nth-child(12) {
                     <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
-                            <i class="fas fa-plus"></i> 
-                            <span>افزودن وام جدید</span>
-                        </button>
+    <i class="fas fa-plus"></i> 
+    <span>افزودن کاربر جدید</span>  <!-- فقط این خط رو عوض کن -->
+</button>
                         <button class="btn btn-warning" id="export-excel">
                             <i class="fas fa-file-excel"></i>
                             <span>خروجی اکسل</span>
@@ -1293,14 +1337,14 @@ table.table td:nth-child(12) {
                     </tbody>
                 </table>
                 
-                <div id="empty-state" class="empty-state" style="display: none;">
-                    <i class="fas fa-inbox"></i>
-                    <h3>داده‌ای وجود ندارد</h3>
-                    <p>هنوز هیچ وامی ثبت نشده است. برای شروع روی دکمه "افزودن وام جدید" کلیک کنید.</p>
-                    <button class="btn btn-success" id="add-first-loan">
-                        <i class="fas fa-plus"></i> افزودن اولین وام
-                    </button>
-                </div>
+				<div id="empty-state" class="empty-state" style="display: none;">
+					<i class="fas fa-inbox"></i>
+					<h3>کاربری وجود ندارد</h3>  <!-- فقط این خط رو عوض کن -->
+					<p>هنوز هیچ کاربری ثبت نشده است. برای شروع روی دکمه "افزودن کاربر جدید" کلیک کنید.</p>  <!-- فقط این خط رو عوض کن -->
+					<button class="btn btn-success" id="add-first-loan">
+						<i class="fas fa-plus"></i> افزودن اولین کاربر
+					</button>
+				</div>
             </div>
         </div>
     </div>
@@ -1491,6 +1535,58 @@ let modalElements = {
 
 // ==================== توابع جدید برای user_info ====================
 
+
+// تابع جدید برای نمایش مودال بروزرسانی اطلاعات
+// تابع جدید برای نمایش مودال بروزرسانی اطلاعات
+function showLoanRequestUpdateModal(employeeNumber, message, willEnableLoan) {
+    const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+    if (employee) {
+        // پر کردن فرم با اطلاعات فعلی
+        document.getElementById('username').value = employee.username || '';
+        document.getElementById('employee-number').value = employee.employeeNumber;
+        document.getElementById('fullname').value = employee.fullname;
+        document.getElementById('gender').value = employee.gender;
+        document.getElementById('contract-type').value = employee.contractType || 'Staff';
+        document.getElementById('priority').value = employee.priority;
+        document.getElementById('description').value = employee.description || '';
+        
+        // تغییر عنوان مودال بر اساس وضعیت
+        const titleColor = willEnableLoan ? '#28a745' : '#dc3545';
+        const titleText = willEnableLoan ? 'فعال کردن درخواست وام' : 'غیرفعال کردن درخواست وام';
+        
+        document.getElementById('modal-title').innerHTML = `
+            ${titleText}
+            <div style="font-size: 12px; color: #6c757d; margin-top: 5px; font-weight: normal;">
+                ${message}
+            </div>
+        `;
+        
+        // highlight کردن فیلدهای مورد نیاز
+        const priorityField = document.getElementById('priority');
+        const descriptionField = document.getElementById('description');
+        
+        priorityField.style.border = '2px solid #ff9800';
+        priorityField.style.backgroundColor = '#fff3cd';
+        descriptionField.style.border = '2px solid #ff9800';
+        descriptionField.style.backgroundColor = '#fff3cd';
+        
+        // ذخیره وضعیت درخواست وام در دیتای مخفی
+        document.getElementById('addEmployeeModal').setAttribute('data-will-enable-loan', willEnableLoan);
+        document.getElementById('addEmployeeModal').setAttribute('data-employee-number', employeeNumber);
+        
+        // نمایش مودال
+        document.getElementById('addEmployeeModal').style.display = 'block';
+        document.getElementById('employee-number').readOnly = true;
+        
+        // فوکوس روی فیلد اولویت
+        setTimeout(() => {
+            priorityField.focus();
+        }, 500);
+    }
+}
+
+
+
 // تابع بهینه‌شده برای بارگذاری کاربران و وام‌هایشان در یک درخواست
 async function loadEmployeesWithLoans() {
     showLoading(true, 'در حال بارگذاری کاربران و وام‌ها...');
@@ -1619,75 +1715,121 @@ async function loadEmployeesWithLoans() {
         }
 
         async function deleteEmployee(employeeNumber) {
-            const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
-            const employeeName = employee ? employee.fullname : 'کاربر';
+    const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+    const employeeName = employee ? employee.fullname : 'کاربر';
+    
+    // ایجاد مودال زیبا به جای confirm ساده
+    const deleteModal = document.createElement('div');
+    deleteModal.className = 'modal';
+    deleteModal.style.display = 'block';
+    deleteModal.innerHTML = `
+        <div class="modal-content" style="max-width: 450px; margin: 15% auto;">
+            <div class="modal-header" style="background: #e74c3c;">
+                <h2><i class="fas fa-exclamation-triangle"></i> حذف کاربر</h2>
+                <span class="close" onclick="this.parentElement.parentElement.parentElement.remove()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px 0;">
+                    <i class="fas fa-trash-alt" style="font-size: 48px; color: #e74c3c; margin-bottom: 15px;"></i>
+                    <h3 style="color: #333; margin-bottom: 15px; font-size: 16px;">
+                        آیا از حذف کلیه اطلاعات "${employeeName}" اطمینان دارید؟
+                    </h3>
+                    <p style="color: #666; font-size: 13px;">
+                        تمام اطلاعات کاربر شامل اطلاعات شخصی و وام‌های مرتبط حذف خواهند شد.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">لغو</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-final">
+                    <i class="fas fa-trash"></i> حذف کاربر
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(deleteModal);
+    
+    // event listener برای دکمه تأیید حذف
+    document.getElementById('confirm-delete-final').onclick = async function() {
+        try {
+            // ابتدا وام‌های کاربر را حذف می‌کنیم
+            await deleteEmployeeLoans(employeeNumber);
             
-            if (confirm(`آیا از حذف اطلاعات وام "${employeeName}" اطمینان دارید؟`)) {
-                try {
-                    // ابتدا وام‌های کاربر را حذف می‌کنیم
-                    await deleteEmployeeLoans(employeeNumber);
-                    
-                    // سپس خود کاربر را حذف می‌کنیم
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeNumber}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Prefer': 'return=minimal'
-                        }
-                    });
-                    
-                    if (!response.ok) throw new Error('خطا در حذف کاربر');
-                    
-                    employeesData = employeesData.filter(item => item.employeeNumber !== employeeNumber);
-                    renderTable(employeesData);
-                    saveToLocalStorage();
-                    showNotification('کاربر با موفقیت حذف شد', 'success');
-                    
-                } catch (error) {
-                    console.error('❌ خطا در حذف کاربر:', error);
-                    showNotification('خطا در حذف کاربر', 'error');
+            // سپس خود کاربر را حذف می‌کنیم
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeNumber}`, {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Prefer': 'return=minimal'
                 }
-            }
+            });
+            
+            if (!response.ok) throw new Error('خطا در حذف کاربر');
+            
+            employeesData = employeesData.filter(item => item.employeeNumber !== employeeNumber);
+            renderTable(employeesData);
+            
+            // بستن مودال
+            deleteModal.remove();
+            
+            showNotification(`کاربر "${employeeName}" با موفقیت حذف شد`, 'success');
+            
+        } catch (error) {
+            console.error('❌ خطا در حذف کاربر:', error);
+            showNotification('خطا در حذف کاربر', 'error');
+            deleteModal.remove();
         }
+    };
+    
+    // بستن مودال با کلیک خارج
+    deleteModal.onclick = function(e) {
+        if (e.target === deleteModal) {
+            deleteModal.remove();
+        }
+    };
+}
 
         // ==================== توابع جدید برای loan_info ====================
 
-        async function loadEmployeeLoans(employeeNumber) {
-            try {
-                const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
-                if (!employee) return [];
-                
-                // اگر وام‌ها قبلاً بارگذاری شده‌اند، از کش استفاده کن
-                if (employee.loans) {
-                    return employee.loans;
-                }
-                
-                // در غیر این صورت از سرور بارگذاری کن
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?employee_id=eq.${employee.id}&select=*&order=loan_date.desc`, {
-                    headers: { 
-                        'apikey': SUPABASE_KEY, 
-                        'Authorization': `Bearer ${SUPABASE_KEY}` 
-                    }
-                });
-                
-                if (!response.ok) throw new Error('خطا در بارگذاری وام‌ها');
-                
-                const result = await response.json();
-                return result.map(loan => ({
-                    id: loan.id,
-                    type: loan.loan_type,
-                    amount: loan.amount,
-                    bankName: loan.bank_name,
-                    date: loan.loan_date,
-                    description: loan.description || ''
-                }));
-                
-            } catch (error) {
-                console.error('❌ خطا در بارگذاری وام‌ها:', error);
-                return [];
-            }
+    async function loadEmployeeLoans(employeeNumber) {
+    try {
+        console.log('🔍 در حال پیدا کردن کاربر برای لود وام‌ها:', employeeNumber);
+        
+        const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+        if (!employee) {
+            console.log('❌ کاربر یافت نشد');
+            return [];
         }
+
+        console.log('📡 در حال بارگذاری وام‌ها از سرور برای:', employee.id);
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?employee_id=eq.${employee.id}&select=*&order=loan_date.desc`, {
+            headers: { 
+                'apikey': SUPABASE_KEY, 
+                'Authorization': `Bearer ${SUPABASE_KEY}` 
+            }
+        });
+        
+        if (!response.ok) throw new Error('خطا در بارگذاری وام‌ها');
+        
+        const result = await response.json();
+        console.log('💰 وام‌های دریافت شده:', result.length);
+        
+        return result.map(loan => ({
+            id: loan.id,
+            type: loan.loan_type,
+            amount: loan.amount,
+            bankName: loan.bank_name,
+            date: loan.loan_date,
+            description: loan.description || ''
+        }));
+        
+    } catch (error) {
+        console.error('❌ خطا در بارگذاری وام‌ها:', error);
+        return [];
+    }
+}
 
         async function saveEmployeeLoan(employeeId, loanData) {
             try {
@@ -1878,6 +2020,8 @@ function updateUserLoanList() {
     const loanCount = document.getElementById('user-loan-count');
     const totalAmountElement = document.getElementById('total-loan-amount');
     
+    console.log('🔄 آپدیت لیست وام‌ها - وام‌های فعلی:', currentEmployeeLoans);
+    
     loanCount.textContent = currentEmployeeLoans.length;
     
     // محاسبه جمع کل وام‌ها
@@ -1896,37 +2040,112 @@ function updateUserLoanList() {
     if (currentEmployeeLoans.length === 0) {
         loanItemsHTML = '<div class="empty-loans-message">هیچ وامی ثبت نشده است</div>';
     } else {
+        // نمایش همه وام‌ها - هم بانکی هم شرکتی
         currentEmployeeLoans.forEach((loan) => {
-            const loanName = loan.type === 'bank' ? 
-                (loan.bankName || 'بانک') : 
-                (loan.description || 'وام شرکتی');
+            console.log('📋 نمایش وام:', loan);
             
-            loanItemsHTML += `
-                <div class="loan-item-compact">
-                    <div class="loan-info-compact">
-                        <div class="loan-name">${loanName}</div>
-                        <div class="loan-details">
-                            ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
-                            ${loan.description ? `<br>${loan.description}` : ''}
+            if (loan.type === 'bank') {
+                // وام بانکی
+                const loanName = loan.bankName || 'بانک';
+                loanItemsHTML += `
+                    <div class="loan-item-compact">
+                        <div class="loan-info-compact">
+                            <div class="loan-name">${loanName} (وام بانکی)</div>
+                            <div class="loan-details">
+                                ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
+                                ${loan.description ? `<br>${loan.description}` : ''}
+                            </div>
+                        </div>
+                        <div class="loan-actions-compact">
+                            <button class="btn btn-warning btn-compact" onclick="editUserLoan(${loan.id})" title="ویرایش وام">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-compact" onclick="removeUserLoan(${loan.id})" title="حذف وام">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                    <div class="loan-actions-compact">
-                        <button class="btn btn-warning btn-compact" onclick="editUserLoan(${loan.id})" title="ویرایش وام">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-compact" onclick="removeUserLoan(${loan.id})" title="حذف وام">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                `;
+            } else if (loan.type === 'company') {
+                // وام شرکتی
+                const loanName = loan.description || 'وام شرکتی';
+                loanItemsHTML += `
+                    <div class="loan-item-compact">
+                        <div class="loan-info-compact">
+                            <div class="loan-name">${loanName} (وام شرکتی)</div>
+                            <div class="loan-details">
+                                ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
+                            </div>
+                        </div>
+                        <div class="loan-actions-compact">
+                            <button class="btn btn-warning btn-compact" onclick="editUserLoan(${loan.id})" title="ویرایش وام">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-compact" onclick="removeUserLoan(${loan.id})" title="حذف وام">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // برای حالت‌های دیگه
+                loanItemsHTML += `
+                    <div class="loan-item-compact">
+                        <div class="loan-info-compact">
+                            <div class="loan-name">وام (${loan.type})</div>
+                            <div class="loan-details">
+                                ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
+                                ${loan.description ? `<br>${loan.description}` : ''}
+                            </div>
+                        </div>
+                        <div class="loan-actions-compact">
+                            <button class="btn btn-warning btn-compact" onclick="editUserLoan(${loan.id})" title="ویرایش وام">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-compact" onclick="removeUserLoan(${loan.id})" title="حذف وام">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         });
     }
     
     loanListContainer.innerHTML = loanItemsHTML;
+    console.log('✅ لیست وام‌ها آپدیت شد - تعداد:', currentEmployeeLoans.length);
 }
 
         // ==================== توابع اصلی سیستم ====================
+
+
+// تابع چک کردن لود شدن آیکون‌ها
+function checkIconsLoaded() {
+    setTimeout(() => {
+        const icons = document.querySelectorAll('.fas, .fa');
+        console.log('تعداد آیکون‌های پیدا شده:', icons.length);
+        
+        icons.forEach(icon => {
+            const style = window.getComputedStyle(icon, ':before');
+            const content = style.content;
+            console.log('آیکون:', icon.className, 'محتوا:', content);
+        });
+    }, 2000);
+}
+
+// بعد از لود صفحه چک کنیم
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 سیستم مدیریت وام بارگذاری شد');
+    
+    // کدهای موجود...
+    
+    // چک کردن آیکون‌ها بعد از 3 ثانیه
+    setTimeout(checkIconsLoaded, 3000);
+});
+
+
+
+
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 سیستم مدیریت وام بارگذاری شد');
@@ -2192,14 +2411,20 @@ async function openLoanEdit(employeeNumber, employeeName) {
         modalElements.modalTitle.textContent = `مدیریت وام‌های ${employeeName}`;
 
         console.log('3. بارگذاری وام‌ها...');
-        let loans = [];
-        try {
-            loans = await loadEmployeeLoans(employeeNumber);
-            console.log('✅ وام‌ها بارگذاری شد:', loans.length);
-        } catch (error) {
-            console.error('❌ خطا در بارگذاری وام‌ها:', error);
-            return;
-        }
+
+let loans = [];
+try {
+    // مستقیماً از تابع loadEmployeeLoans استفاده کن
+    loans = await loadEmployeeLoans(employeeNumber);
+    currentEmployeeLoans = loans; // حتماً currentEmployeeLoans رو هم آپدیت کن
+    console.log('✅ وام‌ها بارگذاری شد:', loans.length);
+} catch (error) {
+    console.error('❌ خطا در بارگذاری وام‌ها:', error);
+    loans = [];
+    currentEmployeeLoans = [];
+}
+
+console.log('✅ وام‌ها بارگذاری شد:', loans.length);
 
         console.log('4. آپدیت لیست وام‌ها...');
         try {
@@ -2518,7 +2743,7 @@ function setupModalEventListeners() {
             if (addLoanBtn) {
                 addLoanBtn.addEventListener('click', function() {
                     isEditing = false;
-                    document.getElementById('modal-title').textContent = 'افزودن وام جدید';
+                    document.getElementById('modal-title').textContent = 'افزودن کاربر جدید';
                     document.getElementById('loan-form').reset();
                     document.getElementById('employee-number').readOnly = false;
                     
@@ -2581,30 +2806,76 @@ function setupModalEventListeners() {
                 });
             }
 
-            document.querySelectorAll('.close, .btn-secondary').forEach(button => {
-                button.addEventListener('click', function() {
-                    const modalId = this.getAttribute('data-modal');
-                    const modal = document.getElementById(modalId);
-                    if (modal) {
-                        modal.style.display = 'none';
-                        document.getElementById('employee-number').readOnly = false;
+            // در setupEventListeners این رو آپدیت کنید:
+document.querySelectorAll('.close, .btn-secondary').forEach(button => {
+    button.addEventListener('click', function() {
+        const modalId = this.getAttribute('data-modal');
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // اگر مودال بروزرسانی اطلاعات بود، سوئیچ رو به حالت قبلی برگردون
+            const employeeNumber = modal.getAttribute('data-employee-number');
+            if (employeeNumber) {
+                const switchElement = document.getElementById(`switch-${employeeNumber}`);
+                if (switchElement) {
+                    // به حالت واقعی در دیتابیس برگردون
+                    const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+                    if (employee) {
+                        switchElement.checked = employee.loanRequest;
                     }
-                });
-            });
+                }
+            }
+            
+            modal.style.display = 'none';
+            document.getElementById('employee-number').readOnly = false;
+            
+            // بازگرداندن استایل فیلدها به حالت عادی
+            document.getElementById('priority').style.border = '';
+            document.getElementById('priority').style.backgroundColor = '';
+            document.getElementById('description').style.border = '';
+            document.getElementById('description').style.backgroundColor = '';
+            
+            // پاک کردن داده‌های مخفی
+            modal.removeAttribute('data-will-enable-loan');
+            modal.removeAttribute('data-employee-number');
+        }
+    });
+});
 
 // حذف onclick از دکمه‌ها و استفاده از event delegation
+// در تابع setupEventListeners، این بخش را پیدا کنید و جایگزین کنید:
 document.addEventListener('click', function(e) {
-    // اگر روی دکمه مدیریت وام کلیک شد
-    if (e.target.closest('.btn-info') || e.target.closest('.manage-loan-btn')) {
+    // اگر روی دکمه جزییات وام کلیک شد
+    if (e.target.closest('.btn-info')) {
         e.preventDefault();
         e.stopPropagation();
         
-        const button = e.target.closest('.btn-info') || e.target.closest('.manage-loan-btn');
-        const employeeNumber = button.getAttribute('onclick').match(/'([^']+)'/)[1];
-        const employeeName = button.getAttribute('onclick').match(/'([^']+)'/)[3];
+        const button = e.target.closest('.btn-info');
+        const onclickAttr = button.getAttribute('onclick');
+        if (onclickAttr) {
+            const matches = onclickAttr.match(/'([^']+)'/g);
+            if (matches && matches.length >= 2) {
+                const employeeNumber = matches[0].replace(/'/g, '');
+                const employeeName = matches[1].replace(/'/g, '');
+                openLoanDetails(employeeNumber, employeeName);
+            }
+        }
+    }
+    
+    // اگر روی دکمه ویرایش وام کلیک شد
+    if (e.target.closest('.btn-warning')) {
+        e.preventDefault();
+        e.stopPropagation();
         
-        console.log('🎯 کلیک (delegation):', employeeNumber);
-        openLoanManagement(employeeNumber, employeeName);
+        const button = e.target.closest('.btn-warning');
+        const onclickAttr = button.getAttribute('onclick');
+        if (onclickAttr) {
+            const matches = onclickAttr.match(/'([^']+)'/g);
+            if (matches && matches.length >= 2) {
+                const employeeNumber = matches[0].replace(/'/g, '');
+                const employeeName = matches[1].replace(/'/g, '');
+                openLoanEdit(employeeNumber, employeeName);
+            }
+        }
     }
 });
 
@@ -2938,90 +3209,130 @@ function filterTable() {
     renderTable(filteredData);
 }
 
-        async function saveLoan() {
-            const employeeNumber = document.getElementById('employee-number').value;
+async function saveLoan() {
+    const employeeNumber = document.getElementById('employee-number').value;
+    const modal = document.getElementById('addEmployeeModal');
+    const willEnableLoan = modal.getAttribute('data-will-enable-loan') === 'true';
+    
+    if (!employeeNumber.trim()) {
+        showNotification('شماره پرسنلی الزامی است', 'error');
+        return;
+    }
+    
+    const existingIndex = employeesData.findIndex(item => item.employeeNumber === employeeNumber);
+    
+    const employeeData = {
+        username: document.getElementById('username').value,
+        employeeNumber: employeeNumber,
+        fullname: document.getElementById('fullname').value,
+        gender: document.getElementById('gender').value,
+        contractType: document.getElementById('contract-type').value,
+        priority: document.getElementById('priority').value,
+        description: document.getElementById('description').value,
+        loanRequest: willEnableLoan // وضعیت نهایی درخواست وام
+    };
+    
+    try {
+        if (existingIndex === -1) {
+            const newEmployeeId = await saveEmployee(employeeData, true);
+            employeeData.id = newEmployeeId;
+            employeeData.loans = [];
+            employeesData.push(employeeData);
+            showNotification('کاربر جدید با موفقیت افزوده شد', 'success');
+        } else {
+            employeeData.id = employeesData[existingIndex].id;
+            employeeData.loans = employeesData[existingIndex].loans || [];
+            await saveEmployee(employeeData, false);
+            employeesData[existingIndex] = employeeData;
             
-            if (!employeeNumber.trim()) {
-                showNotification('شماره پرسنلی الزامی است', 'error');
-                return;
-            }
-            
-            const existingIndex = employeesData.findIndex(item => item.employeeNumber === employeeNumber);
-            
-            const employeeData = {
-                username: document.getElementById('username').value,
-                employeeNumber: employeeNumber,
-                fullname: document.getElementById('fullname').value,
-                gender: document.getElementById('gender').value,
-                contractType: document.getElementById('contract-type').value,
-                priority: document.getElementById('priority').value,
-                description: document.getElementById('description').value,
-                loanRequest: false
-            };
-            
-            console.log('📝 داده‌های ذخیره شده:', employeeData);
-            
-            try {
-                if (existingIndex === -1) {
-                    const newEmployeeId = await saveEmployee(employeeData, true);
-                    employeeData.id = newEmployeeId;
-                    employeeData.loans = []; // اضافه کردن آرایه خالی برای وام‌ها
-                    employeesData.push(employeeData);
-                    showNotification('کاربر جدید با موفقیت افزوده شد', 'success');
-                } else {
-                    employeeData.loanRequest = employeesData[existingIndex].loanRequest;
-                    employeeData.id = employeesData[existingIndex].id;
-                    employeeData.loans = employeesData[existingIndex].loans || []; // حفظ وام‌های موجود
-                    await saveEmployee(employeeData, false);
-                    employeesData[existingIndex] = employeeData;
-                    showNotification('اطلاعات کاربر با موفقیت به‌روزرسانی شد', 'success');
-                }
-                
-                renderTable(employeesData);
-                saveToLocalStorage();
-                document.getElementById('addEmployeeModal').style.display = 'none';
-                
-            } catch (error) {
-                showNotification('خطا در ذخیره کاربر', 'error');
-            }
+            const successMessage = willEnableLoan ? 
+                'اطلاعات کاربر با موفقیت بروزرسانی شد و درخواست وام فعال گردید' : 
+                'اطلاعات کاربر با موفقیت بروزرسانی شد و درخواست وام غیرفعال گردید';
+            showNotification(successMessage, 'success');
         }
+        
+        // آپدیت وضعیت سوئیچ
+        const switchElement = document.getElementById(`switch-${employeeNumber}`);
+        if (switchElement) {
+            switchElement.checked = willEnableLoan;
+        }
+        
+        renderTable(employeesData);
+        document.getElementById('addEmployeeModal').style.display = 'none';
+        
+        // بازگرداندن استایل فیلدها به حالت عادی
+        document.getElementById('priority').style.border = '';
+        document.getElementById('priority').style.backgroundColor = '';
+        document.getElementById('description').style.border = '';
+        document.getElementById('description').style.backgroundColor = '';
+        
+        // پاک کردن داده‌های مخفی
+        modal.removeAttribute('data-will-enable-loan');
+        modal.removeAttribute('data-employee-number');
+        
+    } catch (error) {
+        showNotification('خطا در ذخیره کاربر', 'error');
+    }
+}
 
-        function editEmployee(employeeNumber) {
-            const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
-            if (employee) {
-                isEditing = true;
-                document.getElementById('modal-title').textContent = 'ویرایش اطلاعات کاربر';
-                document.getElementById('username').value = employee.username || '';
-                document.getElementById('employee-number').value = employee.employeeNumber;
-                document.getElementById('fullname').value = employee.fullname;
-                document.getElementById('gender').value = employee.gender;
-                document.getElementById('contract-type').value = employee.contractType || 'Staff';
-                document.getElementById('priority').value = employee.priority;
-                document.getElementById('description').value = employee.description || '';
-                document.getElementById('addEmployeeModal').style.display = 'block';
-                
-                document.getElementById('employee-number').readOnly = true;
-            }
-        }
+function editEmployee(employeeNumber) {
+    // ذخیره موقعیت اسکرول قبل از هر کاری
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    
+    const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+    if (employee) {
+        isEditing = true;
+        document.getElementById('modal-title').textContent = 'ویرایش اطلاعات کاربر';
+        document.getElementById('username').value = employee.username || '';
+        document.getElementById('employee-number').value = employee.employeeNumber;
+        document.getElementById('fullname').value = employee.fullname;
+        document.getElementById('gender').value = employee.gender;
+        document.getElementById('contract-type').value = employee.contractType || 'Staff';
+        document.getElementById('priority').value = employee.priority;
+        document.getElementById('description').value = employee.description || '';
+        document.getElementById('addEmployeeModal').style.display = 'block';
+        
+        document.getElementById('employee-number').readOnly = true;
+        
+        // فوراً موقعیت اسکرول رو برگردون
+        setTimeout(() => {
+            window.scrollTo(0, currentScroll);
+        }, 10);
+        
+        // برای همه روش‌های بستن مودال
+        const restoreScroll = () => setTimeout(() => window.scrollTo(0, currentScroll), 10);
+        
+        document.querySelectorAll('.close, .btn-secondary').forEach(btn => {
+            btn.addEventListener('click', restoreScroll);
+        });
+        
+        document.getElementById('loan-form').addEventListener('submit', restoreScroll);
+    }
+    
+    // جلوگیری از پرش صفحه
+    return false;
+}
 
-        async function toggleLoanRequest(employeeNumber) {
-            const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
-            if (employee) {
-                employee.loanRequest = !employee.loanRequest;
-                renderTable(employeesData);
-                
-                try {
-                    await saveEmployee(employee, false);
-                    
-                    showNotification(
-                        employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
-                        'success'
-                    );
-                } catch (error) {
-                    showNotification('خطا در به‌روزرسانی وضعیت وام', 'error');
-                }
-            }
-        }
+ async function toggleLoanRequest(employeeNumber) {
+    const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
+    if (employee) {
+        const switchElement = document.getElementById(`switch-${employee.employeeNumber}`);
+        const newValue = switchElement.checked;
+        
+        // پیام بر اساس وضعیت جدید
+        const message = newValue ? 
+            'لطفا اطلاعات زیر را برای <span style="color:#28a745">فعال کردن</span> درخواست وام بروزرسانی نمایید: "اولویت وام"، "توضیحات"' :
+            'لطفا اطلاعات زیر را برای <span style="color:#dc3545">غیرفعال کردن</span> درخواست وام بروزرسانی نمایید: "اولویت وام"، "توضیحات"';
+        
+        // نمایش مودال بروزرسانی اطلاعات برای هر دو حالت
+        showLoanRequestUpdateModal(employeeNumber, message, newValue);
+        
+        // وضعیت سوئیچ رو فعلاً تغییر نده - بعد از ذخیره تغییر میکنه
+        switchElement.checked = !newValue; // به حالت قبلی برگردون
+    }
+}
+
+
 
    function exportToExcel() {
     try {
@@ -3128,5 +3439,8 @@ window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن �
 
 
     </script>
+	
+	
+	
 </body>
 </html>
