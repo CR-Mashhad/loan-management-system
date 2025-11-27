@@ -175,8 +175,8 @@
             font-weight: 500;
         }
         
-        table.table td a.edit { color: #FFC107; }
-        table.table td a.delete { color: #F44336; }
+        table.table td a.edit { color: #6736A2; }
+        table.table td a.delete { color: #D32417; }
         table.table td a.details { color: #17a2b8; }
         
         /* استایل جدید برای دکمه مدیریت وام در ستون عملیات */
@@ -1556,7 +1556,7 @@ function showLoanRequestUpdateModal(employeeNumber, message, willEnableLoan) {
         
         document.getElementById('modal-title').innerHTML = `
             ${titleText}
-            <div style="font-size: 12px; color: #6c757d; margin-top: 5px; font-weight: normal;">
+            <div style="font-size: 12px; color: white; margin-top: 5px; font-weight: normal;">
                 ${message}
             </div>
         `;
@@ -1714,7 +1714,10 @@ async function loadEmployeesWithLoans() {
             }
         }
 
-        async function deleteEmployee(employeeNumber) {
+ async function deleteEmployee(employeeNumber) {
+    // ذخیره موقعیت اسکرول قبل از هر کاری
+    const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+    
     const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
     const employeeName = employee ? employee.fullname : 'کاربر';
     
@@ -1740,7 +1743,7 @@ async function loadEmployeesWithLoans() {
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">لغو</button>
+                <button type="button" class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove(); setTimeout(() => window.scrollTo(0, ${currentScroll}), 10);">لغو</button>
                 <button type="button" class="btn btn-danger" id="confirm-delete-final">
                     <i class="fas fa-trash"></i> حذف کاربر
                 </button>
@@ -1771,8 +1774,11 @@ async function loadEmployeesWithLoans() {
             employeesData = employeesData.filter(item => item.employeeNumber !== employeeNumber);
             renderTable(employeesData);
             
-            // بستن مودال
+            // بستن مودال و برگردوندن اسکرول
             deleteModal.remove();
+            setTimeout(() => {
+                window.scrollTo(0, currentScroll);
+            }, 10);
             
             showNotification(`کاربر "${employeeName}" با موفقیت حذف شد`, 'success');
             
@@ -1780,13 +1786,19 @@ async function loadEmployeesWithLoans() {
             console.error('❌ خطا در حذف کاربر:', error);
             showNotification('خطا در حذف کاربر', 'error');
             deleteModal.remove();
+            setTimeout(() => {
+                window.scrollTo(0, currentScroll);
+            }, 10);
         }
     };
     
-    // بستن مودال با کلیک خارج
+    // بستن مودال با کلیک خارج و برگردوندن اسکرول
     deleteModal.onclick = function(e) {
         if (e.target === deleteModal) {
             deleteModal.remove();
+            setTimeout(() => {
+                window.scrollTo(0, currentScroll);
+            }, 10);
         }
     };
 }
@@ -3212,7 +3224,6 @@ function filterTable() {
 async function saveLoan() {
     const employeeNumber = document.getElementById('employee-number').value;
     const modal = document.getElementById('addEmployeeModal');
-    const willEnableLoan = modal.getAttribute('data-will-enable-loan') === 'true';
     
     if (!employeeNumber.trim()) {
         showNotification('شماره پرسنلی الزامی است', 'error');
@@ -3220,6 +3231,12 @@ async function saveLoan() {
     }
     
     const existingIndex = employeesData.findIndex(item => item.employeeNumber === employeeNumber);
+    
+    // بررسی اینکه آیا از طریق سوئیچ درخواست وام اومده یا edit معمولی
+    const isFromLoanRequest = modal.getAttribute('data-will-enable-loan') !== null;
+    const willEnableLoan = isFromLoanRequest ? 
+        modal.getAttribute('data-will-enable-loan') === 'true' : 
+        (existingIndex !== -1 ? employeesData[existingIndex].loanRequest : false);
     
     const employeeData = {
         username: document.getElementById('username').value,
@@ -3229,48 +3246,68 @@ async function saveLoan() {
         contractType: document.getElementById('contract-type').value,
         priority: document.getElementById('priority').value,
         description: document.getElementById('description').value,
-        loanRequest: willEnableLoan // وضعیت نهایی درخواست وام
+        loanRequest: willEnableLoan
     };
     
     try {
         if (existingIndex === -1) {
+            // افزودن کاربر جدید
             const newEmployeeId = await saveEmployee(employeeData, true);
             employeeData.id = newEmployeeId;
             employeeData.loans = [];
             employeesData.push(employeeData);
             showNotification('کاربر جدید با موفقیت افزوده شد', 'success');
         } else {
+            // آپدیت کاربر موجود
             employeeData.id = employeesData[existingIndex].id;
             employeeData.loans = employeesData[existingIndex].loans || [];
             await saveEmployee(employeeData, false);
             employeesData[existingIndex] = employeeData;
             
-            const successMessage = willEnableLoan ? 
-                'اطلاعات کاربر با موفقیت بروزرسانی شد و درخواست وام فعال گردید' : 
-                'اطلاعات کاربر با موفقیت بروزرسانی شد و درخواست وام غیرفعال گردید';
+            // پیام بر اساس نوع عملیات
+            let successMessage = 'اطلاعات کاربر با موفقیت بروزرسانی شد';
+            if (isFromLoanRequest && modal.getAttribute('data-employee-number') === employeeNumber) {
+                successMessage += willEnableLoan ? 
+                    ' و درخواست وام فعال گردید' : 
+                    ' و درخواست وام غیرفعال گردید';
+            }
             showNotification(successMessage, 'success');
         }
         
-        // آپدیت وضعیت سوئیچ
-        const switchElement = document.getElementById(`switch-${employeeNumber}`);
-        if (switchElement) {
-            switchElement.checked = willEnableLoan;
+        // اگر از طریق سوئیچ درخواست وام اومده، وضعیت سوئیچ رو آپدیت کن
+        if (isFromLoanRequest) {
+            const switchElement = document.getElementById(`switch-${employeeNumber}`);
+            if (switchElement) {
+                switchElement.checked = willEnableLoan;
+            }
         }
+        
+        // مرتب‌سازی employeesData - کاربران با درخواست وام و اولویت بالا اول
+        employeesData.sort((a, b) => {
+            // اول: کاربران با درخواست وام فعال اول
+            if (a.loanRequest && !b.loanRequest) return -1;
+            if (!a.loanRequest && b.loanRequest) return 1;
+            
+            // دوم: اولویت بیشتر اول (زیاد > متوسط > کم)
+            const priorityOrder = { 'زیاد': 3, 'متوسط': 2, 'کم': 1 };
+            const aPriority = priorityOrder[a.priority] || 0;
+            const bPriority = priorityOrder[b.priority] || 0;
+            
+            if (aPriority !== bPriority) return bPriority - aPriority;
+            
+            // سوم: بر اساس نام کاربری
+            return (a.username || '').localeCompare(b.username || '');
+        });
         
         renderTable(employeesData);
         document.getElementById('addEmployeeModal').style.display = 'none';
-        
-        // بازگرداندن استایل فیلدها به حالت عادی
-        document.getElementById('priority').style.border = '';
-        document.getElementById('priority').style.backgroundColor = '';
-        document.getElementById('description').style.border = '';
-        document.getElementById('description').style.backgroundColor = '';
         
         // پاک کردن داده‌های مخفی
         modal.removeAttribute('data-will-enable-loan');
         modal.removeAttribute('data-employee-number');
         
     } catch (error) {
+        console.error('❌ خطا در ذخیره کاربر:', error);
         showNotification('خطا در ذخیره کاربر', 'error');
     }
 }
