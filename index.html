@@ -1589,6 +1589,10 @@ function showLoanRequestUpdateModal(employeeNumber, message, willEnableLoan) {
 
 // تابع بهینه‌شده برای بارگذاری کاربران و وام‌هایشان در یک درخواست
 async function loadEmployeesWithLoans() {
+	 if (!isAuthenticated) {
+        console.log('🔐 کاربر لاگین نکرده - لود داده‌ها لغو شد');
+        return [];
+    }
     showLoading(true, 'در حال بارگذاری کاربران و وام‌ها...');
     
     try {
@@ -1663,6 +1667,13 @@ async function loadEmployeesWithLoans() {
         }
 
         async function saveEmployee(employeeData, isNew = false) {
+			async function saveEmployee(employeeData, isNew = false) {
+    if (!isAuthenticated) {
+        showNotification('لطفاً ابتدا وارد سیستم شوید', 'error');
+        return;
+    }
+    // بقیه کد...
+}
             try {
                 const dataForSupabase = {
                     username: employeeData.username || '',
@@ -1715,6 +1726,12 @@ async function loadEmployeesWithLoans() {
         }
 
  async function deleteEmployee(employeeNumber) {
+
+	  if (!isAuthenticated) {
+        showNotification('لطفاً ابتدا وارد سیستم شوید', 'error');
+        return;
+    }
+	 
     // ذخیره موقعیت اسکرول قبل از هر کاری
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
     
@@ -1806,6 +1823,9 @@ async function loadEmployeesWithLoans() {
         // ==================== توابع جدید برای loan_info ====================
 
     async function loadEmployeeLoans(employeeNumber) {
+		 if (!isAuthenticated) {
+        return [];
+    }
     try {
         console.log('🔍 در حال پیدا کردن کاربر برای لود وام‌ها:', employeeNumber);
         
@@ -1844,6 +1864,10 @@ async function loadEmployeesWithLoans() {
 }
 
         async function saveEmployeeLoan(employeeId, loanData) {
+
+			if (!isAuthenticated) {
+        throw new Error('کاربر لاگین نکرده');
+    }
             try {
                 const dataForSupabase = {
                     employee_id: employeeId,
@@ -1875,6 +1899,12 @@ async function loadEmployeesWithLoans() {
         }
 
         async function deleteEmployeeLoan(loanId) {
+
+if (!isAuthenticated) {
+        throw new Error('کاربر لاگین نکرده');
+    }
+
+			
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?id=eq.${loanId}`, {
                     method: 'DELETE',
@@ -1895,6 +1925,11 @@ async function loadEmployeesWithLoans() {
         }
 
         async function deleteEmployeeLoans(employeeNumber) {
+
+			 if (!isAuthenticated) {
+        throw new Error('کاربر لاگین نکرده');
+    }
+			
             try {
                 const employee = employeesData.find(item => item.employeeNumber === employeeNumber);
                 if (!employee) return;
@@ -2145,20 +2180,8 @@ function checkIconsLoaded() {
     }, 2000);
 }
 
+		
 // بعد از لود صفحه چک کنیم
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 سیستم مدیریت وام بارگذاری شد');
-    
-    // کدهای موجود...
-    
-    // چک کردن آیکون‌ها بعد از 3 ثانیه
-    setTimeout(checkIconsLoaded, 3000);
-});
-
-
-
-
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 سیستم مدیریت وام بارگذاری شد');
     
@@ -2170,23 +2193,36 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ المان‌های مودال ذخیره شدند');
     
     setupEventListeners();
-    loadEmployees();
+    
+    // ❌ این خط رو کامنت کن یا پاک کن:
+    // loadEmployees(); // قبل از لاگین داده لود نکن
+    
     document.getElementById('loan-date').valueAsDate = new Date();
+    
+    // چک کردن آیکون‌ها بعد از 3 ثانیه
+    setTimeout(checkIconsLoaded, 3000);
 });
 
-        function showLoading(show, text = 'در حال بارگذاری...') {
-            const loading = document.getElementById('loading');
-            const loadingText = document.getElementById('loading-text');
-            
-            if (loading && loadingText) {
-                if (show) {
-                    loading.style.display = 'block';
-                    loadingText.textContent = text;
-                } else {
-                    loading.style.display = 'none';
-                }
-            }
+
+		// این تابع رو بذار بیرون از DOMContentLoaded
+function showLoading(show, text = 'در حال بارگذاری...') {
+    const loading = document.getElementById('loading');
+    const loadingText = document.getElementById('loading-text');
+    
+    if (loading && loadingText) {
+        if (show) {
+            loading.style.display = 'block';
+            loadingText.textContent = text;
+        } else {
+            loading.style.display = 'none';
         }
+    }
+}
+
+// سپس DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // کدهای بالا...
+});
 
         function showNotification(message, type = 'success') {
             const backgroundColor = type === 'success' ? '#4CAF50' : 
@@ -2900,20 +2936,23 @@ document.addEventListener('click', function(e) {
                 }
             });
 
-            const loginBtn = document.getElementById('loginBtn');
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function() {
-                    const password = document.getElementById('loginPassword').value;
-                    if (password === '2025') {
-                        isAuthenticated = true;
-                        document.getElementById('loginModal').style.display = 'none';
-                        document.getElementById('mainContainer').style.display = 'block';
-                        showNotification('ورود موفقیت‌آمیز بود', 'success');
-                    } else {
-                        document.getElementById('loginError').style.display = 'block';
-                    }
-                });
-            }
+const loginBtn = document.getElementById('loginBtn');
+if (loginBtn) {
+    loginBtn.addEventListener('click', function() {
+        const password = document.getElementById('loginPassword').value;
+        if (password === '2025') {
+            isAuthenticated = true;
+            document.getElementById('loginModal').style.display = 'none';
+            document.getElementById('mainContainer').style.display = 'block';
+            showNotification('ورود موفقیت‌آمیز بود', 'success');
+            
+            // ✅ بعد از لاگین، داده‌ها رو لود کن
+            loadEmployees();
+        } else {
+            document.getElementById('loginError').style.display = 'block';
+        }
+    });
+}
 
             document.getElementById('loginPassword').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -3102,6 +3141,11 @@ async function removeUserLoan(loanId) {
 // تابع برای به‌روزرسانی وام
 // تابع برای به‌روزرسانی وام
 async function updateEmployeeLoan(loanId, loanData) {
+  if (!isAuthenticated) {
+        throw new Error('کاربر لاگین نکرده');
+    }
+
+	
     try {
         console.log('🔄 در حال به‌روزرسانی وام در دیتابیس:', loanId);
         
@@ -3481,4 +3525,5 @@ window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن �
 	
 </body>
 </html>
+
 
