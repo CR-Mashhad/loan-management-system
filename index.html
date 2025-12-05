@@ -2784,6 +2784,49 @@ function setupModalEventListeners() {
 
 // --------------------------------------------
 
+// تابع جدید برای چک کردن رمز از دیتابیس
+async function checkPassword(password) {
+    try {
+        console.log('🔐 در حال بررسی رمز از دیتابیس...');
+        
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/system_settings?setting_key=eq.admin_password&select=setting_value`, {
+            method: 'GET',
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('📥 پاسخ بررسی رمز:', response.status);
+        
+        if (!response.ok) {
+            console.error('❌ خطا در ارتباط با دیتابیس برای بررسی رمز');
+            return false;
+        }
+
+        const result = await response.json();
+        console.log('📋 نتیجه بررسی رمز:', result);
+        
+        if (result.length > 0 && result[0].setting_value === password) {
+            console.log('✅ رمز صحیح است');
+            return true;
+        }
+        
+        console.log('❌ رمز نادرست است');
+        return false;
+        
+    } catch (error) {
+        console.error('❌ خطا در بررسی رمز:', error);
+        return false;
+    }
+}
+
+		
+
+
+
+		
         function setupEventListeners() {
             console.log('🔧 در حال تنظیم event listeners...');
             
@@ -2938,15 +2981,15 @@ document.addEventListener('click', function(e) {
 
 const loginBtn = document.getElementById('loginBtn');
 if (loginBtn) {
-    loginBtn.addEventListener('click', function() {
+    loginBtn.addEventListener('click', async function() {
         const password = document.getElementById('loginPassword').value;
-        if (password === '2025') {
+        const isValid = await checkPassword(password);
+        
+        if (isValid) {
             isAuthenticated = true;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             showNotification('ورود موفقیت‌آمیز بود', 'success');
-            
-            // ✅ بعد از لاگین، داده‌ها رو لود کن
             loadEmployees();
         } else {
             document.getElementById('loginError').style.display = 'block';
@@ -3525,5 +3568,6 @@ window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن �
 	
 </body>
 </html>
+
 
 
