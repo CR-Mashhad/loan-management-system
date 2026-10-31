@@ -1250,13 +1250,14 @@ table.table td:nth-child(12) {
 
     <!-- مودال رمز عبور -->
     <div id="loginModal" class="login-modal">
-        <div class="login-content">
-            <h2>ورود به سیستم مدیریت وام‌ها</h2>
-            <input type="password" id="loginPassword" placeholder="رمز عبور را وارد کنید">
-            <button id="loginBtn">ورود</button>
-            <div id="loginError" class="login-error">رمز عبور اشتباه است!</div>
-        </div>
+    <div class="login-content">
+        <h2>ورود به سیستم مدیریت وام‌ها</h2>
+        <input type="email" id="loginEmail" placeholder="ایمیل" style="margin-bottom:10px;">
+        <input type="password" id="loginPassword" placeholder="رمز عبور را وارد کنید">
+        <button id="loginBtn">ورود</button>
+        <div id="loginError" class="login-error">ایمیل یا رمز عبور اشتباه است!</div>
     </div>
+</div>
 
     <div class="container" id="mainContainer" style="display: none;">
         <div class="table-responsive">
@@ -2852,48 +2853,7 @@ function setupModalEventListeners() {
 
 // --------------------------------------------
 
-// تابع جدید برای چک کردن رمز از دیتابیس
-async function checkPassword(password) {
-    try {
-        console.log('🔐 در حال بررسی رمز از دیتابیس...');
-        
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/system_settings?setting_key=eq.admin_password&select=setting_value`, {
-            method: 'GET',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
 
-        console.log('📥 پاسخ بررسی رمز:', response.status);
-        
-        if (!response.ok) {
-            console.error('❌ خطا در ارتباط با دیتابیس برای بررسی رمز');
-            return false;
-        }
-
-        const result = await response.json();
-        console.log('📋 نتیجه بررسی رمز:', result);
-        
-        if (result.length > 0 && result[0].setting_value === password) {
-            console.log('✅ رمز صحیح است');
-            return true;
-        }
-        
-        console.log('❌ رمز نادرست است');
-        return false;
-        
-    } catch (error) {
-        console.error('❌ خطا در بررسی رمز:', error);
-        return false;
-    }
-}
-
-		
-
-
-		
         function setupEventListeners() {
             console.log('🔧 در حال تنظیم event listeners...');
             
@@ -3090,20 +3050,44 @@ document.addEventListener('click', function(e) {
                 }
             });
 
+// لاگین با Supabase Auth (ایمیل/پسورد)
+async function loginWithSupabase(email, password) {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+            'apikey': SUPABASE_KEY,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+    return data; // { access_token, refresh_token, user, ... }
+}
+
 const loginBtn = document.getElementById('loginBtn');
 if (loginBtn) {
     loginBtn.addEventListener('click', async function() {
+        const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
-        const isValid = await checkPassword(password);
-        
-        if (isValid) {
+        const errEl = document.getElementById('loginError');
+        errEl.style.display = 'none';
+        this.disabled = true;
+        try {
+            const session = await loginWithSupabase(email, password);
+            // ذخیره توکن برای استفاده در درخواست‌های بعدی
+            window.__accessToken = session.access_token;
+            window.__refreshToken = session.refresh_token;
             isAuthenticated = true;
             document.getElementById('loginModal').style.display = 'none';
             document.getElementById('mainContainer').style.display = 'block';
             showNotification('ورود موفقیت‌آمیز بود', 'success');
             loadEmployees();
-        } else {
-            document.getElementById('loginError').style.display = 'block';
+        } catch (err) {
+            errEl.textContent = err.message;
+            errEl.style.display = 'block';
+        } finally {
+            this.disabled = false;
         }
     });
 }
@@ -3128,7 +3112,17 @@ if (loginBtn) {
         }
 
 
-
+// هدرهای استاندارد برای درخواست به Supabase
+// بعد از لاگین، از access_token استفاده می‌کند؛ قبل از لاگین از کلید عمومی
+function supabaseHeaders(extra = {}) {
+    const token = window.__accessToken || SUPABASE_KEY;
+    return {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...extra
+    };
+}
 // تابع برای آپدیت جدول اصلی بعد از تغییرات وام‌ها
 async function refreshMainTable() {
     try {
