@@ -1544,7 +1544,27 @@ table.table td:nth-child(12) {
         // نام جدول‌های جدید
         const USER_INFO_TABLE = 'user_info';
         const LOAN_INFO_TABLE = 'loan_info';
+// ==================== Supabase Auth Helper ====================
+// هدرهای استاندارد: بعد از لاگین از توکن، قبل از لاگین از کلید عمومی
+function supabaseHeaders(extra = {}) {
+    const token = window.__accessToken || SUPABASE_KEY;
+    return {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...extra
+    };
+}
 
+// fetch کمکی که خودکار هدرها را اعمال می‌کند
+async function supabaseFetch(path, options = {}) {
+    const url = path.startsWith('http') ? path : `${SUPABASE_URL}${path}`;
+    const opts = {
+        ...options,
+        headers: supabaseHeaders(options.headers || {})
+    };
+    return fetch(url, opts);
+}
         // داده‌ها
         let employeesData = []; // حالا این شامل اطلاعات کاربران می‌شود
         let isAuthenticated = false;
@@ -1718,23 +1738,13 @@ async function loadEmployeesWithLoans() {
                 if (isNew) {
                     response = await fetch(`${SUPABASE_URL}/rest/v1/${USER_INFO_TABLE}`, {
                         method: 'POST',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=representation'
-                        },
+                        headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
                         body: JSON.stringify(dataForSupabase)
                     });
                 } else {
                     response = await fetch(`${SUPABASE_URL}/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeData.employeeNumber}`, {
                         method: 'PATCH',
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`,
-                            'Content-Type': 'application/json',
-                            'Prefer': 'return=minimal'
-                        },
+                       headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
                         body: JSON.stringify(dataForSupabase)
                     });
                 }
@@ -1807,11 +1817,7 @@ async function loadEmployeesWithLoans() {
             // سپس خود کاربر را حذف می‌کنیم
             const response = await fetch(`${SUPABASE_URL}/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeNumber}`, {
                 method: 'DELETE',
-                headers: {
-                    'apikey': SUPABASE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_KEY}`,
-                    'Prefer': 'return=minimal'
-                }
+                headers: supabaseHeaders({ 'Prefer': 'return=minimal' })
             });
             
             if (!response.ok) throw new Error('خطا در حذف کاربر');
@@ -1865,10 +1871,7 @@ async function loadEmployeesWithLoans() {
 
         console.log('📡 در حال بارگذاری وام‌ها از سرور برای:', employee.id);
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?employee_id=eq.${employee.id}&select=*&order=loan_date.desc`, {
-            headers: { 
-                'apikey': SUPABASE_KEY, 
-                'Authorization': `Bearer ${SUPABASE_KEY}` 
-            }
+           headers: supabaseHeaders({ 'Prefer': 'return=minimal' })
         });
         
         if (!response.ok) throw new Error('خطا در بارگذاری وام‌ها');
@@ -1908,12 +1911,7 @@ async function loadEmployeesWithLoans() {
 
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}`, {
                     method: 'POST',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
+                    headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
                     body: JSON.stringify(dataForSupabase)
                 });
 
@@ -1936,11 +1934,7 @@ if (!isAuthenticated) {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?id=eq.${loanId}`, {
                     method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Prefer': 'return=minimal'
-                    }
+                    headers: supabaseHeaders({ 'Prefer': 'return=minimal' })
                 });
                 
                 if (!response.ok) throw new Error('خطا در حذف وام');
@@ -1964,11 +1958,7 @@ if (!isAuthenticated) {
                 
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?employee_id=eq.${employee.id}`, {
                     method: 'DELETE',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Prefer': 'return=minimal'
-                    }
+                    headers: supabaseHeaders({ 'Prefer': 'return=minimal' })
                 });
                 
                 if (!response.ok) throw new Error('خطا در حذف وام‌های کاربر');
@@ -3313,12 +3303,7 @@ async function updateEmployeeLoan(loanId, loanData) {
 
         const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}?id=eq.${loanId}`, {
             method: 'PATCH',
-            headers: {
-                'apikey': SUPABASE_KEY,
-                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
-            },
+           headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
             body: JSON.stringify(dataForSupabase)
         });
 
