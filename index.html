@@ -1539,8 +1539,7 @@ table.table td:nth-child(12) {
         const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
         const SUPABASE_KEY = "sb_publishable_Miw4tQ0ppv9S8_bWkrFLIQ_JaCda5jc";
 		        // تنظیمات ربات بله
-        const BALE_BOT_TOKEN = "1378448946:uTkND5LQkPGbOogBwYOx9GNhnb980kusvHo";
-        const BALE_CHAT_ID = "1156775177";
+        
         // نام جدول‌های جدید
         const USER_INFO_TABLE = 'user_info';
         const LOAN_INFO_TABLE = 'loan_info';
@@ -2308,41 +2307,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         }
-		    async function sendBaleNotification(fullname, priority, description) {
-            // آدرس پروکسی شما در کلودفلر
-            const PROXY_URL = "https://loanmanagment.nova-1d059c.workers.dev/"; 
-
-            // گرفتن تاریخ شمسی روز جاری
-            const today = new Date().toLocaleDateString('fa-IR');
-
-            // ساخت متن پیام
-            const message = `🔔 درخواست وام مجدد جدید\n\n` +
-                            `👤 نام و نام خانوادگی: ${fullname}\n` +
-                            `📅 تاریخ درخواست: ${today}\n` +
-                            `⚠️ اولویت: ${priority}\n` +
-                            `📝 توضیحات: ${description || 'بدون توضیحات'}\n\n` +
-                            `سیستم مدیریت وام‌ها - CR(Mashhad)`;
-
-            // ساخت لینک API بله
-            const baleApiUrl = `https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage?chat_id=${BALE_CHAT_ID}&text=${encodeURIComponent(message)}`;
-            
-            // ترکیب پروکسی و آدرس بله
-            const finalUrl = `${PROXY_URL}?url=${encodeURIComponent(baleApiUrl)}`;
-
-            try {
-                const response = await fetch(finalUrl);
-                const data = await response.json();
-                
-                if (data.ok) {
-                    console.log('✅ پیام بله با موفقیت ارسال شد', data);
-                } else {
-                    console.error('❌ خطا از سمت بله:', data);
-                }
-            } catch (error) {
-                console.error('❌ خطا در ارتباط با پروکسی/بله:', error);
-            }
-        }
-
+		    
         function showEmptyState() {
             const table = document.querySelector('table.table');
             const emptyState = document.getElementById('empty-state');
@@ -3571,14 +3536,7 @@ async function saveLoan() {
                 switchElement.checked = willEnableLoan;
             }
         }
-                // ارسال پیام به بله اگر درخواست وام فعال شود
-        if (isFromLoanRequest && willEnableLoan) {
-            sendBaleNotification(
-                employeeData.fullname, 
-                employeeData.priority, 
-                employeeData.description
-            );
-        }
+            
         // مرتب‌سازی employeesData - کاربران با درخواست وام و اولویت بالا اول
         employeesData.sort((a, b) => {
             // اول: کاربران با درخواست وام فعال اول
