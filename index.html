@@ -1651,7 +1651,7 @@ async function loadEmployeesWithLoans() {
     try {
         // استفاده از JOIN برای بارگذاری کاربران و وام‌هایشان در یک درخواست
         // مرتب‌سازی: اول بر اساس درخواست وام، سپس اولویت، سپس نام کاربری
-        const response = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}?select=*,${LOAN_INFO_TABLE}(*)&order=...`);
+        const response = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}?select=*,${LOAN_INFO_TABLE}(*)&order=loanrequest.desc,priority.desc,username.asc`);
         
         if (!response.ok) throw new Error('خطا در بارگذاری کاربران و وام‌ها');
         
