@@ -1749,14 +1749,28 @@ async function loadEmployeesWithLoans() {
                     });
                 }
 
-                if (!response.ok) throw new Error('خطا در ذخیره کاربر');
-                
-                if (isNew) {
-                    const result = await response.json();
-                    return result[0].id; // بازگشت ID کاربر جدید
-                }
-                
-                return true;
+             if (!response.ok) {
+    const errText = await response.text();
+    console.error('❌ پاسخ خطای Supabase:', response.status, errText);
+    throw new Error('خطا در ذخیره کاربر: ' + response.status + ' ' + errText);
+}
+
+if (isNew) {
+    // پاسخ ممکن است خالی باشد؛ با احتیاط parse کن
+    const text = await response.text();
+    if (!text) {
+        console.warn('⚠️ پاسخ POST خالی بود - احتمالاً Prefer: return=representation اعمال نشده');
+        // دوباره کاربر را با شماره پرسنلی پیدا کن
+        const lookup = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeData.employeeNumber}&select=id`);
+        const rows = await lookup.json();
+        if (!rows.length) throw new Error('کاربر ذخیره شد ولی پیدا نشد');
+        return rows[0].id;
+    }
+    const result = JSON.parse(text);
+    return Array.isArray(result) ? result[0].id : result.id;
+}
+
+return true;
             } catch (error) {
                 console.error('❌ خطا در ذخیره کاربر:', error);
                 throw error;
@@ -1894,35 +1908,63 @@ async function loadEmployeesWithLoans() {
     }
 }
 
-        async function saveEmployeeLoan(employeeId, loanData) {
-
-			if (!isAuthenticated) {
-        throw new Error('کاربر لاگین نکرده');
+       async function saveEmployee(employeeData, isNew = false) {
+    if (!isAuthenticated) {
+        showNotification('لطفاً ابتدا وارد سیستم شوید', 'error');
+        return;
     }
-            try {
-                const dataForSupabase = {
-                    employee_id: employeeId,
-                    loan_type: loanData.type,
-                    amount: loanData.amount,
-                    bank_name: loanData.bankName || null,
-                    loan_date: loanData.date,
-                    description: loanData.description || ''
-                };
+    try {
+        const dataForSupabase = {
+            username: employeeData.username || '',
+            employeenumber: employeeData.employeeNumber,
+            fullname: employeeData.fullname,
+            gender: employeeData.gender,
+            contracttype: employeeData.contractType || 'Staff',
+            priority: employeeData.priority,
+            description: employeeData.description || '',
+            loanrequest: employeeData.loanRequest || false
+        };
 
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/${LOAN_INFO_TABLE}`, {
-                    method: 'POST',
-                    headers: supabaseHeaders({ 'Prefer': 'return=minimal' }),
-                    body: JSON.stringify(dataForSupabase)
-                });
-
-                if (!response.ok) throw new Error('خطا در ذخیره وام');
-                
-                return true;
-            } catch (error) {
-                console.error('❌ خطا در ذخیره وام:', error);
-                throw error;
-            }
+        let response;
+        if (isNew) {
+            response = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}`, {
+                method: 'POST',
+                headers: { 'Prefer': 'return=representation' },
+                body: JSON.stringify(dataForSupabase)
+            });
+        } else {
+            response = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeData.employeeNumber}`, {
+                method: 'PATCH',
+                headers: { 'Prefer': 'return=minimal' },
+                body: JSON.stringify(dataForSupabase)
+            });
         }
+
+        if (!response.ok) {
+            const errText = await response.text();
+            console.error('❌ پاسخ خطای Supabase:', response.status, errText);
+            throw new Error('خطا در ذخیره کاربر: ' + response.status + ' ' + errText);
+        }
+
+        if (isNew) {
+            const text = await response.text();
+            if (!text) {
+                // پاسخ خالی: کاربر را با شماره پرسنلی پیدا کن
+                const lookup = await supabaseFetch(`/rest/v1/${USER_INFO_TABLE}?employeenumber=eq.${employeeData.employeeNumber}&select=id`);
+                const rows = await lookup.json();
+                if (!rows.length) throw new Error('کاربر ذخیره شد ولی پیدا نشد');
+                return rows[0].id;
+            }
+            const result = JSON.parse(text);
+            return Array.isArray(result) ? result[0].id : result.id;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('❌ خطا در ذخیره کاربر:', error);
+        throw error;
+    }
+}
 
         async function deleteEmployeeLoan(loanId) {
 
